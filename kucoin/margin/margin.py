@@ -466,3 +466,179 @@ class MarginData(KucoinBaseRestApi):
         }
         return self._request('GET', '/api/v1/risk/limit/strategy', params=params)
 
+    def get_isolated_margin_symbols(self):
+        """
+        https://docs.kucoin.com/#query-isolated-margin-trading-pair-configuration
+        :return:
+        [{
+            "symbol": "EOS-USDC",
+            "symbolName": "EOS-USDC",
+            "baseCurrency": "EOS",
+            "quoteCurrency": "USDC",
+            "maxLeverage": 10,
+            "flDebtRatio": "0.97",
+            "tradeEnable": true,
+            "autoRenewMaxDebtRatio": "0.96",
+            "baseBorrowEnable": true,
+            "quoteBorrowEnable": true,
+            "baseTransferInEnable": true,
+            "quoteTransferInEnable": true
+        },
+        {
+            "symbol": "MANA-USDT",
+            "symbolName": "MANA-USDT",
+            "baseCurrency": "MANA",
+            "quoteCurrency": "USDT",
+            "maxLeverage": 10,
+            "flDebtRatio": "0.9",
+            "tradeEnable": true,
+            "autoRenewMaxDebtRatio": "0.96",
+            "baseBorrowEnable": true,
+            "quoteBorrowEnable": true,
+            "baseTransferInEnable": true,
+            "quoteTransferInEnable": true
+        }]
+        """
+        return self._request('GET', '/api/v1/isolated/symbols')
+
+    def get_isolated_margin_account(self):
+        """
+        https://docs.kucoin.com/#query-isolated-margin-account-info
+        :return:
+        {
+        "totalConversionBalance": "3.4939947",
+        "liabilityConversionBalance": "0.00239066",
+        "assets": [
+            {
+                "symbol": "MANA-USDT",
+                "status": "CLEAR",
+                "debtRatio": "0",
+                "baseAsset": {
+                    "currency": "MANA",
+                    "totalBalance": "0",
+                    "holdBalance": "0",
+                    "availableBalance": "0",
+                    "liability": "0",
+                    "interest": "0",
+                    "borrowableAmount": "0"
+                },
+                "quoteAsset": {
+                    "currency": "USDT",
+                    "totalBalance": "0",
+                    "holdBalance": "0",
+                    "availableBalance": "0",
+                    "liability": "0",
+                    "interest": "0",
+                    "borrowableAmount": "0"
+                }
+            },
+            {
+                "symbol": "EOS-USDC",
+                "status": "CLEAR",
+                "debtRatio": "0",
+                "baseAsset": {
+                    "currency": "EOS",
+                    "totalBalance": "0",
+                    "holdBalance": "0",
+                    "availableBalance": "0",
+                    "liability": "0",
+                    "interest": "0",
+                    "borrowableAmount": "0"
+                },
+                "quoteAsset": {
+                    "currency": "USDC",
+                    "totalBalance": "0",
+                    "holdBalance": "0",
+                    "availableBalance": "0",
+                    "liability": "0",
+                    "interest": "0",
+                    "borrowableAmount": "0"
+                }
+            }
+        ]}
+        """
+        return self._request('GET', '/api/v1/isolated/accounts')
+
+    def get_single_isolated_margin_account(self, symbol):
+        """
+        https://docs.kucoin.com/#query-single-isolated-margin-account-info
+        :param symbol: symbol (Mandatory)
+        :type: str
+        :return:
+        {
+            "symbol": "MANA-USDT",
+            "status": "CLEAR",
+            "debtRatio": "0",
+            "baseAsset": {
+                "currency": "MANA",
+                "totalBalance": "0",
+                "holdBalance": "0",
+                "availableBalance": "0",
+                "liability": "0",
+                "interest": "0",
+                "borrowableAmount": "0"
+            },
+            "quoteAsset": {
+                "currency": "USDT",
+                "totalBalance": "0",
+                "holdBalance": "0",
+                "availableBalance": "0",
+                "liability": "0",
+                "interest": "0",
+                "borrowableAmount": "0"
+            }
+        }
+        """
+        return self._request('GET', '/api/v1/isolated/account/{symbol}'.format(symbol=symbol))
+
+    def create_isolated_borrow_order(self, symbol, currency, size, order_type, **kwargs):
+        """
+        https://docs.kucoin.com/#isolated-margin-borrowing
+        :param symbol: Trading pair (Mandatory)
+        :type: str
+        :param currency: Currency to Borrow (Mandatory)
+        :type: str
+        :param order_type: Type: FOK, IOC (Mandatory)
+        :type: str
+        :param size: Total size (Mandatory)
+        :type: float
+        :param kwargs: [Optional] maxRate, period
+        :return:
+        {
+        "orderId": "62baad0aaafc8000014042b3",
+        "currency": "USDT",
+        "actualSize": "10"
+        }
+        """
+        params = {
+            'symbol': symbol,
+            'currency': currency,
+            'borrowStrategy': order_type,
+            'size': size,
+        }
+        if kwargs:
+            params.update(kwargs)
+        return self._request('POST', '/api/v1/isolated/borrow', params=params)
+
+    def isolated_click_to_repayment(self, symbol, currency, sequence, size):
+        """
+        https://docs.kucoin.com/#quick-repayment
+        :param symbol: Trading pair (Mandatory)
+        :type: str
+        :param currency: currency (Mandatory)
+        :type: str
+        :param sequence: Repayment strategy. (Mandatory)
+        RECENTLY_EXPIRE_FIRST: Time priority, namely to repay the loans of the nearest maturity time first,
+        HIGHEST_RATE_FIRST: Rate Priority: Repay the loans of the highest interest rate first.
+        :type: str
+        :param size: Repayment size (Mandatory)
+        :type: float
+        :return:
+        """
+        params = {
+            'symbol': symbol,
+            'currency': currency,
+            'seqStrategy': sequence,
+            'size': size
+        }
+        return self._request('POST', '/api/v1/isolated/repay/all', params=params)
