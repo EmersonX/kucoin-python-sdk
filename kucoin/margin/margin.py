@@ -620,6 +620,38 @@ class MarginData(KucoinBaseRestApi):
             params.update(kwargs)
         return self._request('POST', '/api/v1/isolated/borrow', params=params)
 
+    def get_isolated_repay_record(self, **kwargs):
+        """
+        https://docs.kucoin.com/#query-outstanding-repayment-records
+        :param kwargs: [Optional] symbol, currency, currentPage, pageSize
+        :return:
+        {
+            "currentPage": 1,
+            "pageSize": 10,
+            "totalNum": 6,
+            "totalPage": 1,
+            "items": [
+                {
+                    "loanId": "62aec83bb51e6f000169a3f0",
+                    "symbol": "BTC-USDT",
+                    "currency": "USDT",
+                    "liabilityBalance": "10.02000016",
+                    "principalTotal": "10",
+                    "interestBalance": "0.02000016",
+                    "createdAt": 1655621691869,
+                    "maturityTime": 1656226491869,
+                    "period": 7,
+                    "repaidSize": "0",
+                    "dailyInterestRate": "0.001"
+                },
+            ]
+        }
+        """
+        params = {}
+        if kwargs:
+            params.update(kwargs)
+        return self._request('GET', '/api/v1/isolated/borrow/outstanding', params=params)
+
     def isolated_click_to_repayment(self, symbol, currency, sequence, size):
         """
         https://docs.kucoin.com/#quick-repayment
@@ -634,6 +666,10 @@ class MarginData(KucoinBaseRestApi):
         :param size: Repayment size (Mandatory)
         :type: float
         :return:
+        {
+            "code": "200000",
+            "data": null
+        }
         """
         params = {
             'symbol': symbol,
