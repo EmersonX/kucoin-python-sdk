@@ -10,6 +10,8 @@ import time
 from uuid import uuid1
 from urllib.parse import urljoin
 
+from kucoin.exceptions import KucoinAPIException, TooManyRequestsException
+
 
 try:
     import pkg_resources
@@ -104,7 +106,7 @@ class KucoinBaseRestApi(object):
             try:
                 data = response_data.json()
             except ValueError:
-                raise Exception(response_data.content)
+                raise KucoinAPIException(response_data)
             else:
                 if data and data.get('code'):
                     if data.get('code') == '200000':
@@ -113,9 +115,11 @@ class KucoinBaseRestApi(object):
                         else:
                             return data
                     else:
-                        raise Exception("{}-{}".format(response_data.status_code, response_data.text))
+                        raise KucoinAPIException(response_data)
+        elif response_data.status_code == 429:
+            raise TooManyRequestsException(response_data)
         else:
-            raise Exception("{}-{}".format(response_data.status_code, response_data.text))
+            raise KucoinAPIException(response_data)
 
     @property
     def return_unique_id(self):
